@@ -193,10 +193,40 @@ namespace MinimalFirewall
             finally { _fittingLayout = false; }
         }
 
+        // The popup appears on top of whatever the user is doing; a click or key press aimed at another window
+        // must not land on Allow. Keep the allowing buttons disabled briefly after the popup appears.
+        private const int AllowDelayMs = 900;
+
+        private void DelayAllowButtons()
+        {
+            Button[] allowing = [allowButton, tempAllowButton];
+            foreach (var button in allowing)
+            {
+                button.Enabled = false;
+            }
+
+            var timer = new System.Windows.Forms.Timer { Interval = AllowDelayMs };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                timer.Dispose();
+                if (IsDisposed)
+                {
+                    return;
+                }
+                foreach (var button in allowing)
+                {
+                    button.Enabled = true;
+                }
+            };
+            timer.Start();
+        }
+
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
             ApplyThemeStyles(_isDarkMode);
+            DelayAllowButtons();
             try
             {
                 if (PendingConnection == null)
