@@ -52,6 +52,7 @@ namespace MinimalFirewall
         private Image? _unlockedWhiteIcon;
         private Image? _refreshWhiteIcon;
         private ToolStripMenuItem? lockdownTrayMenuItem;
+        private ToolStripMenuItem? blockAllTrayMenuItem;
         private Icon? _defaultTrayIcon;
         private Icon? _unlockedTrayIcon;
         private Icon? _alertTrayIcon;
@@ -150,6 +151,7 @@ namespace MinimalFirewall
 
             _actionsService = new FirewallActionsService(_firewallRuleService, _activityLogger, _eventListenerService, _firewallSentryService, _whitelistService, _wildcardRuleService, _dataService);
             _eventListenerService.ActionsService = _actionsService;
+            UpdateBlockAllTrayState();
 
             _backgroundTaskService = new BackgroundFirewallTaskService(_actionsService, _activityLogger, _wildcardRuleService, _dataService);
             _actionsService.BackgroundTaskService = _backgroundTaskService;
@@ -880,6 +882,8 @@ namespace MinimalFirewall
             lockdownTrayMenuItem = new ToolStripMenuItem("Toggle Lockdown", null, ToggleLockdownTrayMenuItem_Click);
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add(lockdownTrayMenuItem);
+            blockAllTrayMenuItem = new ToolStripMenuItem("Block All Traffic", null, BlockAllTrayMenuItem_Click);
+            contextMenu.Items.Add(blockAllTrayMenuItem);
             contextMenu.Items.Add(new ToolStripMenuItem("Show", null, ShowWindow));
             contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, ExitApplication));
             contextMenu.Opening += TrayContextMenu_Opening;
@@ -902,6 +906,21 @@ namespace MinimalFirewall
         private void TrayContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             lockdownTrayMenuItem?.Text = MainViewModel.IsLockedDown ? "Disable Lockdown" : "Enable Lockdown";
+            UpdateBlockAllTrayState();
+        }
+
+        private void BlockAllTrayMenuItem_Click(object? sender, EventArgs e)
+        {
+            _actionsService.SetBlockAllTraffic(!_actionsService.IsBlockAllTrafficEnabled());
+            UpdateBlockAllTrayState();
+        }
+
+        // Reads the live rule state so the tray stays correct after a restart or an external change.
+        private void UpdateBlockAllTrayState()
+        {
+            bool active = _actionsService.IsBlockAllTrafficEnabled();
+            blockAllTrayMenuItem?.Checked = active;
+            notifyIcon?.Text = active ? "Minimal Firewall - All traffic blocked" : "Minimal Firewall";
         }
 
         private void SetupAutoRefreshTimer()
