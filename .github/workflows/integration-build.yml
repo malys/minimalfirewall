@@ -1,0 +1,58 @@
+# Builds the personal integration branch (every open PR merged together) and publishes
+# MinimalFirewall.exe as a workflow artifact. Fork only: not meant for the upstream repository.
+name: Integration build
+
+on:
+  push:
+    branches: [local/integration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v3
+      # COM reference generation requires Windows and full-framework MSBuild.
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Publish single-file exe
+        run: mise run publish
+
+      - name: Build checks
+        run: |
+          foreach ($p in 'WildcardChecks','CacheChecks','ApplicationsChecks') {
+            msbuild "tests/$p/$p.csproj" /restore /p:Configuration=Release /p:Platform=x64 /verbosity:minimal
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Run checks
+        run: |
+          foreach ($p in 'WildcardChecks','CacheChecks','ApplicationsChecks') {
+            & "./tests/$p/bin/x64/Release/net10.0-windows8.0/win-x64/$p.exe"
+            if ($LASTEXITCODE -ne 0) { throw "$p failed with exit code $LASTEXITCODE" }
+          }
+
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinimalFirewall-${{ github.sha }}
+          path: artifacts/publish/MinimalFirewall.exe
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload check screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-screenshots-${{ github.sha }}
+          path: artifacts/applications/*.png
+          if-no-files-found: ignore
