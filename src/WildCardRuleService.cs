@@ -204,7 +204,7 @@ namespace MinimalFirewall
                                            .Replace("\\?", ".") + "$";
 
 
-                    folderRegex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                    folderRegex = new Regex(pattern, RegexOptions.IgnoreCase);
                 }
                 catch (Exception ex)
                 {
@@ -219,7 +219,7 @@ namespace MinimalFirewall
                                        .Replace("\\*", ".*")
                                        .Replace("\\?", ".") + "$";
 
-                exeRegex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                exeRegex = new Regex(regexPattern, RegexOptions.IgnoreCase);
             }
             catch (Exception ex)
             {
