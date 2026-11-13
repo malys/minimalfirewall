@@ -42,6 +42,8 @@ namespace MinimalFirewall
         private const string DhcpRuleName = "Minimal Firewall System - DHCP Client";
         private const string BlockAllOutboundRuleName = "Minimal Firewall System - Block All Outbound";
         private const string BlockAllInboundRuleName = "Minimal Firewall System - Block All Inbound";
+        private const string TemporaryRulePrefix = "MFW - Temp Allow - ";
+        private const string TemporaryAllowAllRulePrefix = TemporaryRulePrefix + "All Outbound - ";
 
         public BackgroundFirewallTaskService? BackgroundTaskService { get; set; }
 
@@ -86,6 +88,36 @@ namespace MinimalFirewall
                 {
                     activityLogger.LogException("CleanupTemporaryRulesOnStartup", ex);
                 }
+            }
+
+            // Re-arm rules that outlived a restart; otherwise they stay until the next startup after expiry.
+            foreach (var (ruleName, expiryUtc) in _temporaryRuleManager.GetActiveRules())
+            {
+                if (!_temporaryRuleTimers.ContainsKey(ruleName))
+                {
+                    SetupRuleTimer(ruleName, TimeSpan.FromTicks(Math.Max(0, (expiryUtc - DateTime.UtcNow).Ticks)));
+                }
+            }
+        }
+
+        public void CreateTemporaryAllowAllOutbound(TimeSpan duration)
+        {
+            // A program-less allow rule lets everything through the lockdown default block;
+            // explicit block rules (including Block All Traffic) still take precedence.
+            string ruleName = $"{TemporaryAllowAllRulePrefix}{Guid.NewGuid()}";
+            try
+            {
+                BuildAndCreateRule(ruleName, "Temporarily allows all outbound traffic.", MFWConstants.MainRuleGroup,
+                    Directions.Outgoing, Actions.Allow, ProtocolTypes.Any.Value, "", "", RuleType.Program);
+                _temporaryRuleManager.Add(ruleName, DateTime.UtcNow.Add(duration));
+                SetupRuleTimer(ruleName, duration);
+                activityLogger.LogChange("Temporary Rule Created", $"Allowed all outbound traffic for {duration.TotalMinutes} minutes.");
+            }
+            catch (Exception ex) when (ex is COMException or InvalidOperationException)
+            {
+                activityLogger.LogException("CreateTemporaryAllowAllOutbound", ex);
+                SafeShowMessageBox("Failed to allow all outbound traffic.\nCheck debug_log.txt for details.",
+                    "Allow All Outbound", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -1651,7 +1683,7 @@ namespace MinimalFirewall
                 {
                     _ = (r?.ApplicationName = PathResolver.ConvertToEnvironmentPath(r.ApplicationName));
                     return r;
-                }).Where(r => r != null && !IsBlockAllRuleName(r.Name)).ToList();
+                }).Where(r => r != null && !IsBlockAllRuleName(r.Name) && !r.Name.StartsWith(TemporaryRulePrefix, StringComparison.OrdinalIgnoreCase)).ToList();
             var wildcardRules = _wildcardRuleService.GetRules()
                 .Select(r =>
                 {

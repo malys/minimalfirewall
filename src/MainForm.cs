@@ -1006,6 +1006,7 @@ namespace MinimalFirewall
             allowAppMenuItem.DropDownItems.Add(new ToolStripMenuItem("From Running Programs...", null, (_, _) => AllowRunningProgram()));
             allowAppMenuItem.DropDownItems.Add(new ToolStripMenuItem("Browse for File...", null, (_, _) => AllowProgramFile()));
             contextMenu.Items.Add(allowAppMenuItem);
+            contextMenu.Items.Add(new ToolStripMenuItem("Allow All Outbound for 5 Minutes", null, AllowAllOutboundTrayMenuItem_Click));
             contextMenu.Items.Add(new ToolStripMenuItem("Show", null, ShowWindow));
             contextMenu.Items.Add(new ToolStripMenuItem("Exit", null, ExitApplication));
             contextMenu.Opening += TrayContextMenu_Opening;
@@ -1056,6 +1057,12 @@ namespace MinimalFirewall
             {
                 _mainViewModel.CreateProgramRule(appPath, "Allow (Outbound)");
             }
+        }
+
+        // For installers and updaters: the temporary rule removes itself, so lockdown comes back on its own.
+        private void AllowAllOutboundTrayMenuItem_Click(object? sender, EventArgs e)
+        {
+            _actionsService.CreateTemporaryAllowAllOutbound(TimeSpan.FromMinutes(5));
         }
 
         private void TrayContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
