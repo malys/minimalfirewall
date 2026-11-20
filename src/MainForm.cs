@@ -942,7 +942,7 @@ namespace MinimalFirewall
                     {
                         PendingConnection = pending,
                         Decision = result.ToString(),
-                        Duration = (result == NotifierForm.NotifierResult.TemporaryAllow) ?
+                        Duration = (result is NotifierForm.NotifierResult.TemporaryAllow or NotifierForm.NotifierResult.Ignore) ?
                                    notifier.TemporaryDuration : default,
                         TrustPublisher = notifier.TrustPublisher
                     };
