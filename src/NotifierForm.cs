@@ -145,6 +145,9 @@ namespace MinimalFirewall
                 infoLabel.Text = $"WSL program waiting for a {pending.Direction} connection to {pending.RemoteAddress}:{pending.RemotePort}:";
                 createWildcardButton.Visible = false;
                 trustPublisherCheckBox.Visible = false;
+                // OpenSnitch rules here match the program only, so a local-network-only allow cannot be expressed.
+                allowButton.ContextMenuStrip = null;
+                toolTip1.SetToolTip(allowButton, null);
             }
         }
 
@@ -334,7 +337,8 @@ namespace MinimalFirewall
                 string? publisherName = null;
                 bool hasInfo = await Task.Run(() => SignatureValidationService.IsSignatureTrusted(PendingConnection.AppPath, out publisherName));
                 if (IsDisposed) return;
-                _isUnsignedApp = !hasInfo && File.Exists(PendingConnection.AppPath);
+                // Linux binaries never carry an Authenticode signature, so the warning would fire for every WSL program.
+                _isUnsignedApp = !PendingConnection.IsWsl && !hasInfo && File.Exists(PendingConnection.AppPath);
 
                 if (hasInfo && !string.IsNullOrEmpty(publisherName))
                 {
