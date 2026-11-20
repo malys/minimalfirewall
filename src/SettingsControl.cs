@@ -124,6 +124,7 @@ namespace MinimalFirewall
                 Row(startOnStartupSwitch),
                 Row(darkModeSwitch, autoThemeSwitch),
                 Row(popupsSwitch),
+                Row(searchEngineLabel, searchEngineComboBox),
                 Row(showAppIconsSwitch),
                 Row(trafficMonitorSwitch),
                 Row(loggingSwitch),
