@@ -77,6 +77,19 @@ internal static class PopupChecks
         foreach (int percent in new[] { 100, 125, 150, 200 })
         {
             var settings = new AppSettings { Theme = dark ? "Dark" : "Light" };
+            // The fixed-layout wildcard window does not fit a 1080p screen at 200 % font; check up to 150 %.
+            if (percent <= 150)
+            using (var wildcard = new WildcardCreatorForm(new WildcardRuleService(), @"C:\Applications\Browser\browser.exe", settings))
+            {
+                using var wildcardFont = new Font(wildcard.Font.FontFamily, wildcard.Font.SizeInPoints * percent / 100f);
+                wildcard.Font = wildcardFont;
+                wildcard.Show();
+                ValidateLayout(wildcard);
+                foreach (var button in Descendants(wildcard).OfType<Button>().Where(b => b.Visible))
+                    Check(button.Height >= button.GetPreferredSize(Size.Empty).Height && button.Width >= button.GetPreferredSize(Size.Empty).Width,
+                        $"Wildcard window: button '{button.Text}' clips its text.");
+                Capture(wildcard, $"wildcard-creator-{(dark ? "dark" : "light")}-font-{percent}.png", directory);
+            }
             string warning = "Allow C:\\Applications\\Browser\\browser.exe\r\n\r\n" +
                 "Direction: Outbound.\r\nAll network profiles, protocols, ports and addresses; all services using this executable.\r\n\r\n" +
                 "Existing rules in this direction, including scoped and third-party rules, will be replaced.\r\n\r\n" +
