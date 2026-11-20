@@ -1,5 +1,5 @@
 # Builds the personal integration branch (every open PR merged together) and publishes
-# MinimalFirewall.exe as a workflow artifact. Fork only: not meant for the upstream repository.
+# MinimalFirewall.exe as a workflow artifact and as the rolling "integration-latest" prerelease. Fork only: not meant for the upstream repository.
 name: Integration build
 
 on:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: integration-build
@@ -48,6 +48,21 @@ jobs:
           path: artifacts/publish/MinimalFirewall.exe
           if-no-files-found: error
           retention-days: 90
+
+      # Recreated on every build so the tag follows the branch and the download URL never changes.
+      # Releases made with GITHUB_TOKEN do not trigger release.yml (WinGet).
+      - name: Update integration-latest prerelease
+        if: github.ref == 'refs/heads/local/integration'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view integration-latest *> $null
+          if ($LASTEXITCODE -eq 0) { gh release delete integration-latest --cleanup-tag --yes }
+          $short = "$env:GITHUB_SHA".Substring(0, 7)
+          gh release create integration-latest artifacts/publish/MinimalFirewall.exe `
+            --target $env:GITHUB_SHA --prerelease `
+            --title "Integration build ($short)" `
+            --notes "Personal build of local/integration at $env:GITHUB_SHA (upstream plus all open PRs), Release x64, checks passed in run $env:GITHUB_RUN_ID. Not an official upstream release."
 
       - name: Upload check screenshots
         if: always()
