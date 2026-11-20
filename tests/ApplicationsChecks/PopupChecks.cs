@@ -166,6 +166,8 @@ internal static class PopupChecks
     {
         using var image = new Bitmap(form.Width, form.Height);
         form.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+        // Layout checks capture before the screenshot step creates the folder on a clean checkout.
+        Directory.CreateDirectory(directory);
         image.Save(Path.Combine(directory, filename));
     }
 
