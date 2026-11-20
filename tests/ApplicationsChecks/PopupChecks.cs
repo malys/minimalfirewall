@@ -83,7 +83,10 @@ internal static class PopupChecks
             {
                 using var wildcardFont = new Font(wildcard.Font.FontFamily, wildcard.Font.SizeInPoints * percent / 100f);
                 wildcard.Font = wildcardFont;
+                // The constructor creates the handle (title bar theme), so StartPosition no longer applies; place it explicitly.
+                wildcard.Location = Screen.PrimaryScreen!.WorkingArea.Location + new Size(16, 16);
                 wildcard.Show();
+                wildcard.Location = Screen.PrimaryScreen!.WorkingArea.Location + new Size(16, 16);
                 ValidateLayout(wildcard);
                 foreach (var button in Descendants(wildcard).OfType<Button>().Where(b => b.Visible))
                     Check(button.Height >= button.GetPreferredSize(Size.Empty).Height && button.Width >= button.GetPreferredSize(Size.Empty).Width,
