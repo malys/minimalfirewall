@@ -915,6 +915,8 @@ namespace MinimalFirewall
             if (pending.WslReply != null)
             {
                 pending.WslReply(decision, duration);
+                // Count WSL decisions in the dashboard overview too.
+                PendingConnectionProcessed?.Invoke(pending, decision);
                 return;
             }
             activityLogger.LogDebug($"Processing Pending Connection for '{pending.AppPath}'. Decision: {decision}, Duration: {duration}, Trust Publisher: {trustPublisher}");
