@@ -15,7 +15,7 @@ namespace MinimalFirewall
     public partial class NotifierForm : Form
     {
         // Enums and Properties
-        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, AllowLocalNetwork }
+        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, AllowLocalNetwork, CreateAdvancedRule }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public NotifierResult Result { get; set; } = NotifierResult.Ignore;
@@ -31,6 +31,7 @@ namespace MinimalFirewall
         // Set once the signature check finds no trusted signature on an existing file.
         private bool _isUnsignedApp;
         private ContextMenuStrip? _ignoreMenu;
+        private ContextMenuStrip? _createRuleMenu;
 
 
         // Settings file > window position
@@ -422,7 +423,18 @@ namespace MinimalFirewall
 
         private void CreateWildcardButton_Click(object sender, EventArgs e)
         {
-            Result = NotifierResult.CreateWildcard;
+            if (_createRuleMenu == null)
+            {
+                _createRuleMenu = new ContextMenuStrip(components);
+                _createRuleMenu.Items.Add("Wildcard Rule...").Click += (s, e) => SetRuleResult(NotifierResult.CreateWildcard);
+                _createRuleMenu.Items.Add("Rule for this Address and Port...").Click += (s, e) => SetRuleResult(NotifierResult.CreateAdvancedRule);
+            }
+            _createRuleMenu.Show(createWildcardButton, new Point(0, createWildcardButton.Height));
+        }
+
+        private void SetRuleResult(NotifierResult result)
+        {
+            Result = result;
             DialogResult = DialogResult.OK;
             Close();
         }
