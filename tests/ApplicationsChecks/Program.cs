@@ -15,10 +15,12 @@ internal static class Program
         if (args.Contains("--columns"))
         {
             ColumnChecks.Run();
+        SettingsChecks.Run();
             return;
         }
         PopupChecks.Run();
         ColumnChecks.Run();
+        SettingsChecks.Run();
 
         static void Check(bool condition, string message)
         {
