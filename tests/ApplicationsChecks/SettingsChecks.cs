@@ -14,11 +14,15 @@ internal static class SettingsChecks
             root.Controls.Cast<Control>().SelectMany(child =>
                 new[] { child }.Concat(Descendants(child)));
 
-        var option = Descendants(settings).Single(control =>
-            control.Text == "Filter WSL programs (OpenSnitch)");
-        if (!option.Visible || option.Parent is null ||
-            !option.Parent.ClientRectangle.Contains(option.Bounds))
-            throw new InvalidOperationException("WSL option must be visible in the Settings card.");
+        // Card layout lists controls explicitly; an option left out of every card is never shown.
+        foreach (var text in new[] { "Filter WSL programs (OpenSnitch)", "Clean up orphaned rules at startup" })
+        {
+            var option = Descendants(settings).Single(control => control.Text == text);
+            // Left in the legacy fixed panel, an option is "visible" but covered by the cards.
+            if (!option.Visible || option.Parent is null || option.Parent.Name == "mainSettingsPanel" ||
+                !option.Parent.ClientRectangle.Contains(option.Bounds))
+                throw new InvalidOperationException($"\"{text}\" must be visible in a Settings card.");
+        }
         form.Close();
     }
 }

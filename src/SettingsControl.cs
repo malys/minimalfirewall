@@ -143,6 +143,7 @@ namespace MinimalFirewall
             var data = Card("Rules & data",
                 Row(exportRulesButton, importMergeButton, importReplaceButton),
                 Row(cleanUpOrphanedRulesButton, openFirewallButton, openAppDataButton),
+                Row(autoCleanUpOrphanedRulesSwitch),
                 Row(exportDiagnosticButton),
                 Caption("Danger zone — cannot be undone"),
                 Row(deleteAllRulesButton, revertFirewallButton));
