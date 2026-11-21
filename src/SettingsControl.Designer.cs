@@ -21,6 +21,7 @@ namespace MinimalFirewall
             revertFirewallButton = new DarkModeForms.ThemedButton();
             auditAlertsSwitch = new CheckBox();
             wslOpenSnitchSwitch = new CheckBox();
+            autoCleanUpOrphanedRulesSwitch = new CheckBox();
             managePublishersButton = new DarkModeForms.ThemedButton();
             autoAllowWhitelistedPublishersCheck = new CheckBox();
             autoAllowSystemSignedAppsCheck = new CheckBox();
@@ -124,6 +125,16 @@ namespace MinimalFirewall
             wslOpenSnitchSwitch.TabIndex = 42;
             wslOpenSnitchSwitch.Text = "Filter WSL programs (OpenSnitch)";
             wslOpenSnitchSwitch.UseVisualStyleBackColor = true;
+            // autoCleanUpOrphanedRulesSwitch
+            //
+            autoCleanUpOrphanedRulesSwitch.AutoSize = true;
+            autoCleanUpOrphanedRulesSwitch.Location = new Point(306, 197);
+            autoCleanUpOrphanedRulesSwitch.Margin = new Padding(4, 3, 4, 3);
+            autoCleanUpOrphanedRulesSwitch.Name = "autoCleanUpOrphanedRulesSwitch";
+            autoCleanUpOrphanedRulesSwitch.Size = new Size(240, 20);
+            autoCleanUpOrphanedRulesSwitch.TabIndex = 40;
+            autoCleanUpOrphanedRulesSwitch.Text = "Clean up orphaned rules at startup";
+            autoCleanUpOrphanedRulesSwitch.UseVisualStyleBackColor = true;
             // 
             // managePublishersButton
             // 
@@ -518,6 +529,7 @@ namespace MinimalFirewall
             mainSettingsPanel.Controls.Add(revertFirewallButton);
             mainSettingsPanel.Controls.Add(auditAlertsSwitch);
             mainSettingsPanel.Controls.Add(wslOpenSnitchSwitch);
+            mainSettingsPanel.Controls.Add(autoCleanUpOrphanedRulesSwitch);
             mainSettingsPanel.Controls.Add(managePublishersButton);
             mainSettingsPanel.Controls.Add(autoAllowWhitelistedPublishersCheck);
             mainSettingsPanel.Controls.Add(autoAllowSystemSignedAppsCheck);
@@ -740,6 +752,7 @@ namespace MinimalFirewall
         private DarkModeForms.ThemedButton revertFirewallButton;
         private System.Windows.Forms.CheckBox auditAlertsSwitch;
         private System.Windows.Forms.CheckBox wslOpenSnitchSwitch;
+        private System.Windows.Forms.CheckBox autoCleanUpOrphanedRulesSwitch;
         private DarkModeForms.ThemedButton managePublishersButton;
         private System.Windows.Forms.CheckBox autoAllowWhitelistedPublishersCheck;
         private System.Windows.Forms.CheckBox autoAllowSystemSignedAppsCheck;

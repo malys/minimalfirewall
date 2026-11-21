@@ -243,6 +243,7 @@ namespace MinimalFirewall
             autoAllowSystemSignedAppsCheck.CheckedChanged += new System.EventHandler(AutoAllowSystemSignedAppsCheck_CheckedChanged);
             auditAlertsSwitch.CheckedChanged += new System.EventHandler(AuditAlertsSwitch_CheckedChanged);
             wslOpenSnitchSwitch.CheckedChanged += (_, _) => _appSettings?.WslOpenSnitchEnabled = wslOpenSnitchSwitch.Checked;
+            autoCleanUpOrphanedRulesSwitch.CheckedChanged += (_, _) => _appSettings?.AutoCleanUpOrphanedRules = autoCleanUpOrphanedRulesSwitch.Checked;
             autoRefreshTextBox.Leave += new System.EventHandler(AutoRefreshTextBox_Leave);
 
             if (_appImageList != null && _appImageList.Images.ContainsKey("coffee.png"))
@@ -299,6 +300,7 @@ namespace MinimalFirewall
             autoAllowSystemSignedAppsCheck.Checked = _appSettings.AutoAllowSystemSignedApps;
             auditAlertsSwitch.Checked = _appSettings.AlertOnForeignRules;
             wslOpenSnitchSwitch.Checked = _appSettings.WslOpenSnitchEnabled;
+            autoCleanUpOrphanedRulesSwitch.Checked = _appSettings.AutoCleanUpOrphanedRules;
             managePublishersButton.Enabled = true;
             dnsRefreshNumericUpDown.Value = _appSettings.DnsRefreshIntervalMinutes > 0 ? _appSettings.DnsRefreshIntervalMinutes : 4;
             searchEngineComboBox.SelectedItem = searchEngineComboBox.Items.Contains(_appSettings.SearchEngine) ? _appSettings.SearchEngine : "Google";
@@ -330,6 +332,7 @@ namespace MinimalFirewall
             _appSettings.AutoAllowSystemSignedApps = autoAllowSystemSignedAppsCheck.Checked;
             _appSettings.AlertOnForeignRules = auditAlertsSwitch.Checked;
             _appSettings.WslOpenSnitchEnabled = wslOpenSnitchSwitch.Checked;
+            _appSettings.AutoCleanUpOrphanedRules = autoCleanUpOrphanedRulesSwitch.Checked;
 
             _activityLogger.IsEnabled = _appSettings.IsLoggingEnabled;
 
