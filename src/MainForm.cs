@@ -39,6 +39,7 @@ namespace MinimalFirewall
         private IconService _iconService = null!;
         private PublisherWhitelistService _whitelistService = null!;
         private BackgroundFirewallTaskService _backgroundTaskService = null!;
+        private WslOpenSnitchBridge _wslBridge = null!;
         private MainViewModel _mainViewModel = null!;
         private readonly Queue<PendingConnectionViewModel> _popupQueue = [];
         private volatile bool _isPopupVisible = false;
@@ -173,6 +174,26 @@ namespace MinimalFirewall
             liveConnectionsControl1.RefreshRequested += LiveConnectionsControl_RefreshRequested;
 
             settingsControl1.Initialize(_appSettings, _startupService, _whitelistService, _actionsService, _activityLogger, _mainViewModel, appImageList, "Version " + Assembly.GetExecutingAssembly().GetName()?.Version?.ToString(3));
+
+            _wslBridge = new WslOpenSnitchBridge(msg => _activityLogger.LogDebug(msg));
+            _wslBridge.ConnectionAsked += _mainViewModel.AddWslPendingConnection;
+            _mainViewModel.WslBridge = _wslBridge;
+            // Deferred so a change made from the Rules tab finishes before the list is rebuilt.
+            _wslBridge.RulesChanged += () =>
+            {
+                if (IsHandleCreated && !IsDisposed) BeginInvoke(() =>
+                {
+                    _mainViewModel.MergeWslRules();
+                    rulesControl1.ApplyRulesFilters();
+                    applicationsControl1.RefreshApplications();
+                });
+            };
+            _wslBridge.Failed += msg => SafeInvoke(() => MessageBox.Show(this,
+                $"WSL filtering is not active: {msg}.\n\nPrerequisites in the default WSL 2 distro:\n" +
+                "  sudo apt install opensnitch python3-grpcio\n  sudo systemctl enable --now opensnitch\n" +
+                "systemd must be enabled ([boot] systemd=true in /etc/wsl.conf).\n\nTurn the setting off and on again after installing.",
+                "Filter WSL programs", MessageBoxButtons.OK, MessageBoxIcon.Warning));
+            if (_appSettings.WslOpenSnitchEnabled) _wslBridge.Start();
         }
 
         private void OnQueueCountChanged(int count)
@@ -203,6 +224,7 @@ namespace MinimalFirewall
             Microsoft.Win32.SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
 
             _appSettings?.PropertyChanged -= AppSettings_PropertyChanged;
+            _wslBridge?.Dispose();
 
             _cachedArrowPen?.Dispose();
             base.OnFormClosed(e);
@@ -657,6 +679,12 @@ namespace MinimalFirewall
             if (e.PropertyName == nameof(AppSettings.DnsRefreshIntervalMinutes))
             {
                 _mainViewModel?.UpdateDnsTimerInterval();
+            }
+
+            if (e.PropertyName == nameof(AppSettings.WslOpenSnitchEnabled) && _wslBridge != null)
+            {
+                if (_appSettings.WslOpenSnitchEnabled) _wslBridge.Start();
+                else _wslBridge.Stop();
             }
         }
 
