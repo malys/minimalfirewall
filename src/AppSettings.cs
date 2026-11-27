@@ -39,6 +39,7 @@ namespace MinimalFirewall
         private bool _alertOnForeignRules = true;
         private bool _autoCleanUpOrphanedRules;
         private bool _wslOpenSnitchEnabled = false;
+        private string _searchEngine = "Google";
         private bool _filterPrograms = true;
         private bool _filterServices = true;
         private bool _filterUwp = true;
@@ -109,6 +110,7 @@ namespace MinimalFirewall
             get => _autoCleanUpOrphanedRules; set => SetField(ref _autoCleanUpOrphanedRules, value);
         }
         public bool WslOpenSnitchEnabled { get => _wslOpenSnitchEnabled; set => SetField(ref _wslOpenSnitchEnabled, value); }
+        public string SearchEngine { get => _searchEngine; set => SetField(ref _searchEngine, value); }
         public bool FilterPrograms { get => _filterPrograms; set => SetField(ref _filterPrograms, value); }
         public bool FilterServices { get => _filterServices; set => SetField(ref _filterServices, value); }
         public bool FilterUwp { get => _filterUwp; set => SetField(ref _filterUwp, value); }
