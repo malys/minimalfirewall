@@ -94,6 +94,23 @@ namespace MinimalFirewall
                 // Explicit row: auto-placement skips hidden controls and would shift rows onto the wrong style.
                 _notificationLayout.Controls.Add(rows[i], 0, i);
             }
+            _notificationLayout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 7, Padding = new Padding(16) };
+            _notificationLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.Controls.Add(infoLabel, 0, 0);
+            _notificationLayout.Controls.Add(appNameLabel, 0, 1);
+            _notificationLayout.Controls.Add(pathLabel, 0, 2);
+            _notificationLayout.Controls.Add(trustPublisherCheckBox, 0, 3);
+            _notificationLayout.Controls.Add(Commands(copyDetailsButton, createWildcardButton, tempAllowButton), 0, 4);
+            _notificationLayout.Controls.Add(Commands(allowButton, blockButton, ignoreButton), 0, 5);
+            trayHintLabel = new DarkModeForms.ThemedLabel { Name = "trayHintLabel", AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 10, 0, 0), Visible = false };
+            _notificationLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _notificationLayout.Controls.Add(trayHintLabel, 0, 6);
             _notificationLayout.Layout += (_, _) =>
             {
                 if (IsHandleCreated && !_fittingLayout) BeginInvoke((Action)FitToWorkingArea);
@@ -108,11 +125,12 @@ namespace MinimalFirewall
             MinimizeBox = false;
             Name = "NotifierForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Connection Blocked";
+            Text = AppTitlePrefix + "Connection Blocked";
         }
 
         #endregion
 
         private ToolTip toolTip1;
+        private DarkModeForms.ThemedLabel trayHintLabel;
     }
 }
