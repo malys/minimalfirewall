@@ -232,12 +232,46 @@ namespace MinimalFirewall
                 return viewModels;
             }, token);
 
+            var wslConnections = await GetWslConnectionsAsync(token);
+
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            TrafficMonitorViewModel.ActiveConnections = new ObservableCollection<TcpConnectionViewModel>(vms);
+            TrafficMonitorViewModel.ActiveConnections = new ObservableCollection<TcpConnectionViewModel>([.. vms, .. wslConnections]);
+        }
+
+        // WSL 2 sockets live in the VM's Linux kernel, so the Windows tables never list them.
+        private async Task<List<TcpConnectionViewModel>> GetWslConnectionsAsync(CancellationToken token)
+        {
+            var bridge = WslBridge;
+            if (bridge == null) return [];
+
+            List<WslConnection> rows;
+            try
+            {
+                rows = await bridge.GetConnectionsAsync(token);
+            }
+            catch (OperationCanceledException)
+            {
+                return [];
+            }
+
+            string attributes = $"WSL ({bridge.Distro})";
+            return [.. rows.Select(r =>
+            {
+                bool known = r.ProcessPath.Length > 0;
+                bool isUdp = r.Protocol.StartsWith("udp", StringComparison.Ordinal);
+                var row = new Firewall.Traffic.TcpTrafficTracker.TcpTrafficRow(
+                    new System.Net.IPEndPoint(r.LocalAddress, r.LocalPort), new System.Net.IPEndPoint(r.RemoteAddress, r.RemotePort),
+                    r.ProcessId, isUdp ? 0 : WslOpenSnitchBridge.ToWindowsTcpState(r.State), isUdp);
+                // No inode: closing socket (TIME_WAIT). Inode without a distro process: WSL's own service
+                // outside the distro's PID namespace (DNS tunneling on 10.255.255.254:53, time sync on 323).
+                string name = known ? Path.GetFileName(r.ProcessPath) : r.HasSocketInode ? "(WSL system)" : "(no process)";
+                var info = (name, known ? bridge.ToWindowsPath(r.ProcessPath) : string.Empty, string.Empty);
+                return new TcpConnectionViewModel(row, info, _backgroundTaskService) { Attributes = attributes, WslUserId = r.UserId };
+            })];
         }
 
         private static (string Name, string Path, string ServiceName) ResolveProcessInfo(uint pid)
