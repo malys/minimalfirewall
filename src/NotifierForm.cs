@@ -16,6 +16,7 @@ namespace MinimalFirewall
     {
         // Enums and Properties
         public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, CreateAdvancedRule }
+        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, AllowLocalNetwork }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public NotifierResult Result { get; set; } = NotifierResult.Ignore;
@@ -135,6 +136,7 @@ namespace MinimalFirewall
             AcceptButton = ignoreButton;
 
             SetupTempAllowMenu();
+            SetupAllowMenu();
             SetupIgnoreMenu();
 
             if (pending.IsWsl)
@@ -440,6 +442,23 @@ namespace MinimalFirewall
 
             Result = NotifierResult.Allow;
             TrustPublisher = trustPublisherCheckBox.Visible && trustPublisherCheckBox.Checked;
+            CloseWithAllow(NotifierResult.Allow);
+        }
+
+        // Right-click menu on Allow, so the option needs no extra space in the popup layout.
+        private void SetupAllowMenu()
+        {
+            var allowMenu = new ContextMenuStrip(components);
+            allowMenu.Items.Add("Allow Local Network Only").Click += (s, e) => CloseWithAllow(NotifierResult.AllowLocalNetwork);
+            allowButton.ContextMenuStrip = allowMenu;
+            toolTip1.SetToolTip(allowButton, "Right-click to allow the local network only");
+        }
+
+        private void CloseWithAllow(NotifierResult result)
+        {
+            Result = result;
+            // Trusting the publisher allows its apps everywhere, which would defeat a local-network-only rule.
+            TrustPublisher = result == NotifierResult.Allow && trustPublisherCheckBox.Visible && trustPublisherCheckBox.Checked;
             DialogResult = DialogResult.OK;
             Close();
         }
