@@ -37,6 +37,7 @@ namespace MinimalFirewall
         private bool _autoAllowWhitelistedPublishers = false;
         private bool _autoAllowSystemSignedApps = false;
         private bool _alertOnForeignRules = true;
+        private bool _autoCleanUpOrphanedRules;
         private bool _filterPrograms = true;
         private bool _filterServices = true;
         private bool _filterUwp = true;
@@ -93,6 +94,10 @@ namespace MinimalFirewall
         public bool AlertOnForeignRules
         {
             get => _alertOnForeignRules; set => SetField(ref _alertOnForeignRules, value);
+        }
+        public bool AutoCleanUpOrphanedRules
+        {
+            get => _autoCleanUpOrphanedRules; set => SetField(ref _autoCleanUpOrphanedRules, value);
         }
         public bool FilterPrograms { get => _filterPrograms; set => SetField(ref _filterPrograms, value); }
         public bool FilterServices { get => _filterServices; set => SetField(ref _filterServices, value); }
