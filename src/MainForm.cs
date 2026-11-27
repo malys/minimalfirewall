@@ -170,6 +170,7 @@ namespace MinimalFirewall
                 _backgroundTaskService,
                 _appSettings);
             liveConnectionsControl1.Initialize(_mainViewModel.TrafficMonitorViewModel, _appSettings, _iconService, _backgroundTaskService, _actionsService);
+            liveConnectionsControl1.RefreshRequested += LiveConnectionsControl_RefreshRequested;
 
             settingsControl1.Initialize(_appSettings, _startupService, _whitelistService, _actionsService, _activityLogger, _mainViewModel, appImageList, "Version " + Assembly.GetExecutingAssembly().GetName()?.Version?.ToString(3));
         }
@@ -1420,7 +1421,8 @@ namespace MinimalFirewall
             }
         }
 
-        private async Task LoadLiveConnectionsAsync(StatusForm? statusFormInstance = null)
+        // showStatus = false is the silent rescan used by auto-refresh: no status window, no rescan button change.
+        private async Task LoadLiveConnectionsAsync(StatusForm? statusFormInstance = null, bool showStatus = true)
         {
             if (!_appSettings.IsTrafficMonitorEnabled)
             {
@@ -1441,14 +1443,14 @@ namespace MinimalFirewall
             {
                 _isRefreshingData = true;
                 statusForm = statusFormInstance;
-                if (statusForm == null && Visible)
+                if (showStatus && statusForm == null && Visible)
                 {
                     statusForm = new StatusForm("Scanning live connections...", _appSettings);
                     statusForm.Show(this);
                 }
 
                 var progress = new Progress<int>(p => statusForm?.UpdateProgress(p));
-                UpdateUIForRefresh();
+                if (showStatus) UpdateUIForRefresh();
 
                 await _mainViewModel.RefreshLiveConnectionsAsync(token, progress);
                 liveConnectionsControl1.UpdateLiveConnectionsView();
@@ -1463,7 +1465,24 @@ namespace MinimalFirewall
                     statusForm.Close();
                 }
                 _isRefreshingData = false;
-                UpdateUIAfterRefresh();
+                if (showStatus) UpdateUIAfterRefresh();
+            }
+        }
+
+        private async void LiveConnectionsControl_RefreshRequested()
+        {
+            if (mainTabControl.SelectedTab != liveConnectionsTabPage)
+            {
+                return;
+            }
+
+            try
+            {
+                await LoadLiveConnectionsAsync(showStatus: false);
+            }
+            catch (Exception ex)
+            {
+                _activityLogger.LogException("Live connections refresh", ex);
             }
         }
         #endregion
