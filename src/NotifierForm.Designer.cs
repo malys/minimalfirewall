@@ -56,6 +56,9 @@ namespace MinimalFirewall
             searchOnlineButton = new LinkLabel { Name = "searchOnlineButton", Text = "Search online", AutoSize = true, Margin = new Padding(0, 0, 16, 0) };
             copyDetailsButton = new LinkLabel { Name = "copyDetailsButton", Text = "Copy details", AutoSize = true, Margin = new Padding(0, 0, 16, 0) };
             createWildcardButton = new LinkLabel { Name = "createWildcardButton", Text = "Create wildcard rule...", AutoSize = true, Margin = Padding.Empty };
+            tempAllowButton = new DarkModeForms.ThemedButton { Name = "tempAllowButton", Text = "Allow Temporarily" };
+            createWildcardButton = new DarkModeForms.ThemedButton { Name = "createWildcardButton", Text = "Create Rule..." };
+            copyDetailsButton = new DarkModeForms.ThemedButton { Name = "copyDetailsButton", Text = "Copy details" };
             allowButton.Click += AllowButton_Click;
             blockButton.Click += BlockButton_Click;
             ignoreButton.Click += IgnoreButton_Click;
