@@ -15,8 +15,7 @@ namespace MinimalFirewall
     public partial class NotifierForm : Form
     {
         // Enums and Properties
-        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, CreateAdvancedRule }
-        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, AllowLocalNetwork }
+        public enum NotifierResult { Ignore, Allow, Block, TemporaryAllow, CreateWildcard, CreateAdvancedRule, AllowLocalNetwork }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public NotifierResult Result { get; set; } = NotifierResult.Ignore;
@@ -440,8 +439,6 @@ namespace MinimalFirewall
                 return;
             }
 
-            Result = NotifierResult.Allow;
-            TrustPublisher = trustPublisherCheckBox.Visible && trustPublisherCheckBox.Checked;
             CloseWithAllow(NotifierResult.Allow);
         }
 
